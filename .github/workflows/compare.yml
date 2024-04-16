@@ -87,10 +87,10 @@ jobs:
       run: python scripts/diff_all_functions.py > $env:GITHUB_STEP_SUMMARY
     - name: Create diff SVG
       run: python scripts/update_decompile_stats.py gen_svg
-    - name: Upload SVG
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         repository: 'probonopd/uploadtool'
+    - name: Upload SVG
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
