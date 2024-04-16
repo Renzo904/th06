@@ -88,7 +88,7 @@ jobs:
     - name: Create diff SVG
       run: python scripts/update_decompile_stats.py gen_svg
     - name: Download UploadTool
-      run: wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+      run: curl -L https://raw.githubusercontent.com/probonopd/uploadtool/master/upload.sh -o upload.sh
     - name: Upload Progress SVG
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
