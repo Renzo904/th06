@@ -16,6 +16,8 @@ jobs:
 
     permissions:
       statuses: write
+      contents: write
+      contents: read
 
     steps:
     - name: Report tests check
