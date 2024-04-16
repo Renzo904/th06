@@ -90,7 +90,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: 'probonopd/uploadtool'
-    - name: Upload SVG
+    - name: Upload Progress SVG
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
