@@ -85,6 +85,16 @@ jobs:
       run: curl -L https://raw.githubusercontent.com/${{github.event.workflow_run.head_repository.full_name}}/${{github.event.workflow_run.head_sha}}/config/mapping.csv -o config/mapping.csv
     - name: Create diff summary
       run: python scripts/diff_all_functions.py > $env:GITHUB_STEP_SUMMARY
+    - name: Create diff SVG
+      run: python scripts/update_decompile_stats.py gen_svg
+    - uses: actions/checkout@v4
+      with:
+        repository: 'probonopd/uploadtool'
+    - name: Upload Progress SVG
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./upload.sh resources/progress_dark.svg resources/progress.svg
     - name: Report tests check
       if: ${{ github.event_name == 'workflow_run' && success() }}
       uses: actions/github-script@v6
