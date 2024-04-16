@@ -2,9 +2,9 @@ name: Build binary
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "testnewci" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "testnewci" ]
 
 jobs:
   build:
