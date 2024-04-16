@@ -94,7 +94,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        ./upload.sh resources/progress_dark.svg resources/progress.svg
+        bash ./upload.sh resources/progress_dark.svg resources/progress.svg
     - name: Report tests check
       if: ${{ github.event_name == 'workflow_run' && success() }}
       uses: actions/github-script@v6
