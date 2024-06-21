@@ -82,7 +82,6 @@ Player::BombReimuADraw
 Player::BombReimuBDraw
 Player::BombMarisaADraw
 Player::BombMarisaBDraw
-Player::StartFireBulletTimer
 Player::UpdateFireBulletsTimer
 Player::UpdatePlayerBullets
 Pbg3Archive::Pbg3Archive
