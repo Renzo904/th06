@@ -68,7 +68,6 @@ SaveReplay
 ValidateReplayData
 DrawSquare
 Controller::GetControllerState
-Player::DrawBullets
 Player::DrawBulletExplosions
 Player::DeletedCallback
 Player::FireBulletReimuA
