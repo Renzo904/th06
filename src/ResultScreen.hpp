@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AnmVm.hpp"
+#include "ReplayData.hpp"
 #include "ZunResult.hpp"
 #include "inttypes.hpp"
 
@@ -175,11 +176,12 @@ struct ResultScreen
     static void MoveCursor(ResultScreen *r, i32 len);
     static ZunBool MoveCursorHorizontally(ResultScreen *r, i32 len);
 
-    void HandleResultKeyboard();
-    void HandleReplaySaveKeyboard();
+    i32 HandleResultKeyboard();
+    i32 HandleReplaySaveKeyboard();
     ZunResult CheckConfirmButton();
 
-    void LinkScoreEx(Hscr *out, i32 difficulty, i32 character);
+    i32 LinkScoreEx(Hscr *out, i32 difficulty, i32 character);
+    u32 DrawFinalStats();
 
     ScoreDat *scoreDat;
     i32 frameTimer;
@@ -204,11 +206,8 @@ struct ResultScreen
     u8 unk_519c[12];
     ChainElem *calcChain;
     ChainElem *drawChain;
-    u8 unk_51b0[1216];
-    char date[9];
-    u8 unk_5679[11];
-    u32 score;
-    u8 unk_5688[40];
+    ReplayData replays[15];
+    ReplayData defaultReplayMaybe;
 };
 C_ASSERT(sizeof(ResultScreen) == 0x56b0);
 }; // namespace th06

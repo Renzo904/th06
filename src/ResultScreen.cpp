@@ -1,13 +1,17 @@
 #include "ResultScreen.hpp"
 #include "AnmManager.hpp"
+#include "AsciiManager.hpp"
+#include "BulletManager.hpp"
 #include "Chain.hpp"
 #include "ChainPriorities.hpp"
 #include "FileSystem.hpp"
 #include "GameManager.hpp"
+#include "Player.hpp"
 #include "SoundPlayer.hpp"
 #include "Stage.hpp"
 #include "i18n.hpp"
 #include "utils.hpp"
+#include <cstring>
 
 namespace th06
 {
@@ -16,6 +20,10 @@ DIFFABLE_STATIC_ASSIGN(u32, g_DefaultMagic) = 'DMYS';
 DIFFABLE_STATIC_ARRAY_ASSIGN(char *, 6, g_CharacterList) = {TH_HAKUREI_REIMU_SPIRIT,  TH_HAKUREI_REIMU_DREAM,
                                                             TH_KIRISAME_MARISA_DEVIL, TH_KIRISAME_MARISA_LOVE,
                                                             TH_SATSUKI_RIN_FLOWER,    TH_SATSUKI_RIN_WIND};
+static char *g_shortCharacterNames[] = {"ReimuA ", "ReimuB ", "MarisaA", "MarisaB"};
+
+static char *g_AlphabetList =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ.,:;･@abcdefghijklmnopqrstuvwxyz+-/*=%0123456789(){}[]<>#!?'\"$      --";
 
 #define DEFAULT_HIGH_SCORE_NAME "Nanashi "
 
@@ -189,6 +197,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *resultScreen)
     return ZUN_SUCCESS;
 }
 #pragma optimize("", on)
+#pragma intrinsic("strcpy")
 
 #pragma optimize("s", on)
 void ResultScreen::MoveCursor(ResultScreen *resultScreen, i32 length)
@@ -310,52 +319,50 @@ ScoreDat *ResultScreen::OpenScore(char *path)
             free(scoreData);
             goto FAILED_TO_READ;
         }
-        else
+
+        remainingData = g_LastFileSize - 2;
+        checksum = 0;
+        xorValue = 0;
+        bytesShifted = 0;
+        bytes = &scoreData->xorseed[1];
+
+        while (0 < remainingData)
         {
-            remainingData = g_LastFileSize - 2;
-            checksum = 0;
-            xorValue = 0;
-            bytesShifted = 0;
-            bytes = &scoreData->xorseed[1];
 
-            while (0 < remainingData)
+            xorValue += bytes[0];
+            // Invert top 3 bits and bottom 5 bits
+            xorValue = (xorValue & 0xe0) >> 5 | (xorValue & 0x1f) << 3;
+            // xor one byte later with the resulting inverted bits
+            bytes[1] ^= xorValue;
+            if (bytesShifted >= 2)
             {
-
-                xorValue += bytes[0];
-                // Invert top 3 bits and bottom 5 bits
-                xorValue = (xorValue & 0xe0) >> 5 | (xorValue & 0x1f) << 3;
-                // xor one byte later with the resulting inverted bits
-                bytes[1] ^= xorValue;
-                if (bytesShifted >= 2)
-                {
-                    checksum += bytes[1];
-                }
-                bytes++;
-                remainingData--;
-                bytesShifted++;
+                checksum += bytes[1];
             }
-            if (scoreData->csum != checksum)
-            {
-                free(scoreData);
-                goto FAILED_TO_READ;
-            }
-            fileLen = scoreData->fileLen;
-            decryptedFilePointer = scoreData->ShiftBytes(scoreData->dataOffset);
-            fileLen -= scoreData->dataOffset;
-            while (fileLen > 0)
-            {
-                if (decryptedFilePointer->magic == 'K6HT')
-                    break;
-
-                decryptedFilePointer = decryptedFilePointer->ShiftBytes(decryptedFilePointer->th6kLen);
-                fileLen = fileLen - decryptedFilePointer->th6kLen;
-            }
-            if (fileLen <= 0)
-            {
-                free(scoreData);
-                goto FAILED_TO_READ;
-            };
+            bytes++;
+            remainingData--;
+            bytesShifted++;
         }
+        if (scoreData->csum != checksum)
+        {
+            free(scoreData);
+            goto FAILED_TO_READ;
+        }
+        fileLen = scoreData->fileLen;
+        decryptedFilePointer = scoreData->ShiftBytes(scoreData->dataOffset);
+        fileLen -= scoreData->dataOffset;
+        while (fileLen > 0)
+        {
+            if (decryptedFilePointer->magic == 'K6HT')
+                break;
+
+            decryptedFilePointer = decryptedFilePointer->ShiftBytes(decryptedFilePointer->th6kLen);
+            fileLen = fileLen - decryptedFilePointer->th6kLen;
+        }
+        if (fileLen <= 0)
+        {
+            free(scoreData);
+            goto FAILED_TO_READ;
+        };
     }
     scoreListNodeSize = sizeof(ScoreListNode);
     scoreData->scores = (ScoreListNode *)malloc(scoreListNodeSize);
@@ -857,6 +864,338 @@ ChainCallbackResult ResultScreen::OnUpdate(ResultScreen *resultScreen)
         g_AnmManager->ExecuteScript(vm);
     }
     resultScreen->frameTimer++;
+    return CHAIN_CALLBACK_RESULT_CONTINUE;
+}
+#pragma optimize("", on)
+
+#pragma optimize("s", on)
+#pragma var_order(local_10, local_14, local_20, local_24, local_2c, local_30, local_34, local_40, local_44, local_48,  \
+                  local_4c, local_5b, local_5c, pDVar1, fVar2, unaff_retaddr, )
+ChainCallbackResult th06::ResultScreen::OnDraw(ResultScreen *param_1)
+{
+    f32 *pDVar1;
+    float fVar2;
+    AnmVm *local_24;
+    u32 unaff_retaddr;
+    char local_5c;
+    u8 local_5b;
+    float local_4c;
+    float local_48;
+    int local_44;
+    D3DXVECTOR3 local_40;
+    ScoreListNode *local_34;
+    int local_30;
+    ScoreListNode *local_2c;
+
+    char local_20[9];
+
+    i32 local_14;
+    D3DXVECTOR3 local_10;
+
+    local_24 = &param_1->unk_40[0];
+    g_Supervisor.viewport.X = 0;
+    g_Supervisor.viewport.Y = 0;
+    g_Supervisor.viewport.Width = 640;
+    g_Supervisor.viewport.Height = 480;
+    g_Supervisor.d3dDevice->SetViewport(&g_Supervisor.viewport);
+    g_AnmManager->CopySurfaceToBackBuffer(0, 0, 0, 0, 0);
+    for (local_14 = 0; local_14 < 0x26; local_14++, local_24++)
+    {
+        local_40 = local_24->pos;
+        local_24->pos += local_24->posOffset;
+        g_AnmManager->DrawNoRotation(local_24);
+        local_24->pos = local_40;
+    }
+    local_24 = &param_1->unk_40[14];
+    if (local_24->pos.x < 640.0f)
+    {
+        if (param_1->unk_c != 8)
+        {
+            local_40 = local_24->pos;
+            param_1->unk_28a0->pos = local_40;
+            g_AnmManager->DrawNoRotation(&param_1->unk_28a0[0]);
+            pDVar1 = &local_40.x;
+            *pDVar1 += 320.0f;
+            param_1->unk_28a0[1].pos = local_40;
+            g_AnmManager->DrawNoRotation(&param_1->unk_28a0[1]);
+
+            pDVar1 = &local_40.x;
+            *pDVar1 -= 320.0f;
+            pDVar1 = &local_40.y;
+            *pDVar1 += 18.0f;
+            pDVar1 = &local_40.y;
+            *pDVar1 += 320.0f;
+
+            local_2c = param_1->scores[param_1->diffSelected][param_1->charUsed * 2].next;
+            local_34 = param_1->scores[param_1->diffSelected][param_1->charUsed * 2 + 1].next;
+            for (local_14 = 0; local_14 < 10; local_14++)
+            {
+                if (param_1->resultScreenState == RESULT_SCREEN_STATE_WRITING_HIGHSCORE_NAME)
+                {
+                    if (g_GameManager.shotType == SHOT_TYPE_A)
+                    {
+                        if ((local_2c->data->base).unk_9 != '\0')
+                        {
+                            g_AsciiManager.color = 0xfff0f0ff;
+
+                            strcpy(local_20, "       ");
+                            local_20[8] = 0;
+                            /* if (param_1->cursor >= 8)
+                            {
+                                local_84 = 7;
+                            }
+                            else
+                            {
+                                local_84 = param_1->cursor;
+                            } */
+                            //*(undefined *)((int)&local_24 + local_84) = 0x5f;
+                            local_20[param_1->cursor >= 8 ? 7 : param_1->cursor] = '_';
+                            g_AsciiManager.AddFormatText(&local_40, "   %8s", &local_20);
+                        }
+                        else
+                        {
+                            g_AsciiManager.color = 0x80ffffc0;
+                        }
+                    }
+                    else
+                    {
+                        g_AsciiManager.color = 0x80ffc0c0;
+                    }
+                }
+                else
+                {
+                    g_AsciiManager.color = 0xffffc0c0;
+                }
+                g_AsciiManager.AddFormatText(
+                    &local_40, (char *)&g_BulletManager.bullets[421].sprites.spriteBullet.posInterpFinal.x,
+                    local_14 + 1);
+
+                local_40.x += 36.0f;
+                if (local_2c->data->stage <= 6)
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(%d)", local_2c->data->name, local_2c->data->score,
+                                                 local_2c->data->stage);
+                }
+                else if (local_2c->data->stage == 7)
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(1)", local_2c->data->name, local_2c->data->score);
+                }
+                else
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(C)", local_2c->data->name, local_2c->data->score);
+                }
+                pDVar1 = &local_40.x;
+                *pDVar1 += 300.0f;
+                if (param_1->resultScreenState == RESULT_SCREEN_STATE_WRITING_HIGHSCORE_NAME)
+                {
+                    if (g_GameManager.shotType == SHOT_TYPE_B)
+                    {
+                        if (local_34->data->base.unk_9 != '\0')
+                        {
+                            g_AsciiManager.color = 0xfffff0f0;
+
+                            strcpy(local_20, "       ");
+                            local_20[8] = 0;
+
+                            local_20[param_1->cursor >= 8 ? 7 : param_1->cursor] = '_';
+                            g_AsciiManager.AddFormatText(&local_40, "%8s", &local_20);
+                        }
+                        else
+                        {
+                            g_AsciiManager.color = 0xc0c0c0ff;
+                        }
+                    }
+                    else
+                    {
+                        g_AsciiManager.color = 0x80c0c0ff;
+                    }
+                }
+                else
+                {
+                    g_AsciiManager.color = 0xffc0c0ff;
+                }
+                if (local_34->data->stage <= 6)
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(%d)", local_34->data->name, local_34->data->score,
+                                                 local_34->data->stage);
+                }
+                else if (local_34->data->stage == 7)
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(1)", local_34->data->name, local_34->data->score);
+                }
+                else
+                {
+                    g_AsciiManager.AddFormatText(&local_40, "%8s %9d(C)", local_34->data->name, local_34->data->score);
+                }
+                pDVar1 = &local_40.x;
+                *pDVar1 -= 336.0f;
+                pDVar1 = &local_40.y;
+                *pDVar1 += 336.0f;
+                local_2c = local_2c->next;
+                local_34 = local_34->next;
+            }
+        }
+        else
+        {
+
+            local_40 = local_24->pos;
+            pDVar1 = &local_40.y;
+            *pDVar1 += 16.0f;
+            for (local_14 = 0; local_14 < 10; local_14++)
+            {
+                local_44 = param_1->lastSpellcardSelected * 10 + local_14;
+                if (local_44 >= 0x40)
+                {
+                    break;
+                }
+
+                param_1->unk_28a0[local_14].pos = local_40;
+                if (g_GameManager.catk[local_44].numSuccess == 0)
+                {
+                    g_AsciiManager.color = 0x80c0c0ff;
+                }
+                else if (g_GameManager.catk[local_44].unk_3e == 0)
+                {
+                    g_AsciiManager.color = 0xffc0a0a0;
+                }
+                else
+                {
+                    g_AsciiManager.color = 0xfff0f0ff - local_14 * 0x80800;
+                }
+                g_AsciiManager.AddFormatText(&local_40, "No.%.2d", local_44 + 1);
+                pDVar1 = &(param_1->unk_28a0)[local_14].pos.x;
+                *pDVar1 += 96.0f;
+                g_AnmManager->DrawNoRotation(&param_1->unk_28a0[local_14]);
+                pDVar1 = &local_40.x;
+                *pDVar1 += 368.0f;
+                g_AsciiManager.AddFormatText(&local_40, "%3d/%3d", g_GameManager.catk[local_44].unk_3e,
+                                             g_GameManager.catk[local_44].numSuccess);
+                pDVar1 = &local_40.x;
+                *pDVar1 -= 368.0f;
+                pDVar1 = &local_40.y;
+                *pDVar1 += 30.0f;
+            }
+        }
+    }
+    if ((param_1->resultScreenState == RESULT_SCREEN_STATE_WRITING_HIGHSCORE_NAME) ||
+        (param_1->resultScreenState == RESULT_SCREEN_STATE_WRITING_REPLAY_NAME))
+    {
+        /* local_40.x = 160.0;
+        local_40.y = 356.0;
+        local_40.z = 0.0; */
+        local_40 = D3DXVECTOR3(160.0f, 356.0f, 0.0f);
+        for (local_14 = 0; local_14 < 6; local_14 = local_14 + 1)
+        {
+            for (local_30 = 0; local_30 < 0x10; local_30++)
+            {
+                local_48 = 0.0;
+                local_4c = 0.0;
+                if (param_1->selectedCharacter == local_14 * 0x10 + local_30)
+                {
+                    g_AsciiManager.color = 0xffffffc0;
+                    if (param_1->frameTimer % 0x40 < 0x20)
+                    {
+                        local_48 = 1.2f + (0.8f * (param_1->frameTimer % 0x20)) / 32.0f;
+                    }
+                    else
+                    {
+                        local_48 = 2.0f - (0.8f * (param_1->frameTimer % 0x20)) / 32.0f;
+                    }
+                    g_AsciiManager.scale.x = local_48;
+                    g_AsciiManager.scale.y = local_48;
+                    local_48 = -(local_48 - 1.0f) * 8.0f;
+                    local_4c = local_48;
+                }
+                else
+                {
+                    g_AsciiManager.color = 0x60c0c0c0;
+                    g_AsciiManager.scale.x = 1.0;
+                    g_AsciiManager.scale.y = 1.0;
+                }
+                local_10 = local_40;
+                local_10.x += local_48;
+                local_10.y += local_4c;
+                local_5c = g_AlphabetList[local_14 * 0x10 + local_30];
+                local_5b = 0;
+                if (local_14 == 5)
+                {
+                    if (local_30 == 0xe)
+                    {
+                        local_5c = -0x80;
+                    }
+                    else if (local_30 == 0xf)
+                    {
+                        local_5c = -0x7f;
+                    }
+                }
+
+                g_AsciiManager.AddString(&local_10, &local_5c);
+                pDVar1 = &local_40.x;
+                *pDVar1 += 20.0f;
+            }
+            pDVar1 = &local_40.x;
+            *pDVar1 -= (local_30 * 20);
+            pDVar1 = &local_40.y;
+            *pDVar1 += 18.0f;
+        }
+    }
+    g_AsciiManager.scale.x = 1.0;
+    g_AsciiManager.scale.y = 1.0;
+    if ((param_1->resultScreenState >= RESULT_SCREEN_STATE_SAVE_REPLAY_QUESTION) &&
+        (param_1->resultScreenState <= RESULT_SCREEN_STATE_OVERWRITE_REPLAY_FILE))
+    {
+        local_24 = &param_1->unk_40[15];
+        for (local_14 = 0; local_14 < 6; local_14++, local_24++)
+        {
+            g_AnmManager->DrawNoRotation(local_24);
+        }
+        local_24 = &param_1->unk_40[21];
+        local_40 = local_24->pos;
+        local_24++;
+        g_AsciiManager.AddFormatText(&local_40, "No.   Name     Date     Player Score");
+        for (local_14 = 0; local_14 < ARRAY_SIZE_SIGNED(param_1->replays); local_14++)
+        {
+            local_40 = local_24->pos;
+            local_24++;
+            if (local_14 == param_1->unk_1c)
+            {
+                g_AsciiManager.color = COLOR_LIGHT_RED;
+            }
+            else
+            {
+                g_AsciiManager.color = COLOR_GREY;
+            }
+            if (param_1->resultScreenState == RESULT_SCREEN_STATE_WRITING_REPLAY_NAME)
+            {
+                g_AsciiManager.AddFormatText(&local_40, "No.%.2d %8s %8s %7s %9d", local_14 + 1, &param_1->unk_34,
+                                             param_1->defaultReplayMaybe.date,
+                                             g_shortCharacterNames[g_GameManager.CharacterShotType()],
+                                             param_1->defaultReplayMaybe.score);
+                g_AsciiManager.color = 0xfff0f0ff;
+
+                strcpy(local_20, "       ");
+
+                local_20[8] = 0;
+
+                local_20[param_1->cursor >= 8 ? 7 : param_1->cursor] = '_';
+                g_AsciiManager.AddFormatText(&local_40, "      %8s", &local_20);
+            }
+            else if (*(i32 *)&param_1->replays[local_14].magic != *(i32 *)"T6RP" || param_1->replays[local_14].version != 0x102)
+            {
+                g_AsciiManager.AddFormatText(&local_40, "No.%.2d -------- --/--/-- -------         0", local_14 + 1);
+            }
+            else
+            {
+                g_AsciiManager.AddFormatText(&local_40, "No.%.2d %8s %8s %7s %9d", local_14 + 1,
+                                             param_1->replays[local_14].name, param_1->replays[local_14].date,
+                                             g_shortCharacterNames[param_1->replays[local_14].shottypeChara],
+                                             param_1->replays[local_14].score);
+            }
+        }
+    }
+    g_AsciiManager.color = COLOR_WHITE;
+    param_1->DrawFinalStats();
+
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 #pragma optimize("", on)
