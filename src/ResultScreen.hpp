@@ -12,6 +12,8 @@ namespace th06
 #define HSCR_NUM_DIFFICULTIES 5
 #define HSCR_NUM_SCORES_SLOTS 10
 
+#define TH6K_VERSION 16
+
 enum ResultScreenState
 {
     RESULT_SCREEN_STATE_INIT = 0,
@@ -111,6 +113,11 @@ C_ASSERT(sizeof(Pscr) == 0x14);
 
 struct Hscr
 {
+    Hscr *ShiftBytes(i32 value)
+    {
+        return (Hscr *)(((u8 *)this) + value);
+    };
+
     Th6k base;
     u32 score;
     u8 character;
@@ -170,16 +177,19 @@ struct ResultScreen
     static ZunResult ParseCatk(ScoreDat *s, Catk *catk);
     static ZunResult ParseClrd(ScoreDat *s, Clrd *out);
     static ZunResult ParsePscr(ScoreDat *s, Pscr *out);
-    static u32 GetHighScore(ScoreDat *score_dat, ScoreListNode *node, u32 character, u32 difficulty);
+    static u32 GetHighScore(ScoreDat *s, ScoreListNode *node, u32 character, u32 difficulty);
     static void ReleaseScoreDat(ScoreDat *s);
 
     static void MoveCursor(ResultScreen *r, i32 len);
     static ZunBool MoveCursorHorizontally(ResultScreen *r, i32 len);
 
+    static void ZunFreeArray(void *array);
+
     i32 HandleResultKeyboard();
     i32 HandleReplaySaveKeyboard();
     ZunResult CheckConfirmButton();
 
+    static i32 LinkScore(ScoreListNode *, Hscr *);
     i32 LinkScoreEx(Hscr *out, i32 difficulty, i32 character);
     u32 DrawFinalStats();
 
