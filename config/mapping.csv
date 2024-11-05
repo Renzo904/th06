@@ -350,10 +350,10 @@ th06::ResultScreen::ParseClrd,0x42b502,0x15c,default,,ZunResult,ScoreDat*,Clrd*
 th06::ResultScreen::ParsePscr,0x42b65e,0x17e,default,,ZunResult,ScoreDat*,Pscr*
 th06::ResultScreen::ReleaseScoreDat,0x42b7dc,0x2d,default,,void,ScoreDat*
 th06::WriteScore,0x42b809,0x424,__stdcall,,void,ResultScreen*
-th06::ResultScreen::LinkScoreEx,0x42bc2d,0x2e,__thiscall,,void,ResultScreen*,Hscr*,i32,i32
+th06::ResultScreen::LinkScoreEx,0x42bc2d,0x2e,__thiscall,,i32,ResultScreen*,Hscr*,i32,i32
 th06::ResultScreen::FreeScore,0x42bc5b,0x2a,__thiscall,,void,ResultScreen*,i32,i32
-th06::ResultScreen::HandleResultKeyboard,0x42bc85,0x64f,__thiscall,,void,ResultScreen*
-th06::ResultScreen::HandleReplaySaveKeyboard,0x42c2d4,0xdd0,__thiscall,,void,ResultScreen*
+th06::ResultScreen::HandleResultKeyboard,0x42bc85,0x64f,__thiscall,,i32,ResultScreen*
+th06::ResultScreen::HandleReplaySaveKeyboard,0x42c2d4,0xdd0,__thiscall,,i32,ResultScreen*
 th06::ResultScreen::MoveCursor,0x42d0a4,0xeb,default,,void,ResultScreen*,i32
 th06::ResultScreen::MoveCursorHorizontally,0x42d18f,0x103,default,,i32,ResultScreen*,i32
 th06::ResultScreen::CheckConfirmButton,0x42d292,0xc8,__thiscall,,ZunResult,ResultScreen*
