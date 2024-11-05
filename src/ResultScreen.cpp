@@ -1519,7 +1519,8 @@ ChainCallbackResult th06::ResultScreen::OnDraw(ResultScreen *param_1)
                 local_20[param_1->cursor >= 8 ? 7 : param_1->cursor] = '_';
                 g_AsciiManager.AddFormatText(&local_40, "      %8s", &local_20);
             }
-            else if (*(i32 *)&param_1->replays[local_14].magic != *(i32 *)"T6RP" || param_1->replays[local_14].version != 0x102)
+            else if (*(i32 *)&param_1->replays[local_14].magic != *(i32 *)"T6RP" ||
+                     param_1->replays[local_14].version != 0x102)
             {
                 g_AsciiManager.AddFormatText(&local_40, "No.%.2d -------- --/--/-- -------         0", local_14 + 1);
             }
