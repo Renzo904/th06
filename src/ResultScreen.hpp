@@ -196,7 +196,8 @@ struct ResultScreen
     i32 lastSpellcardSelected;
     i32 diffSelected;
     i32 cheatCodeStep;
-    i32 unk_34[3];
+    char replayName[8];
+    i32 unk_3c;
     AnmVm unk_40[38];
     AnmVm unk_28a0[16];
     AnmVm unk_39a0;
