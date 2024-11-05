@@ -344,12 +344,12 @@ th06::ReplayManager::SaveReplay,0x42ab30,0x5a9,default,,void,char*,char*
 th06::ResultScreen::OpenScore,0x42b0d9,0x1a7,default,,ScoreDat*,char*
 th06::ResultScreen::GetHighScore,0x42b280,0x126,default,,u32,ScoreDat*,ScoreListNode*,u32,u32
 th06::ResultScreen::LinkScore,0x42b3a6,0x91,default,,i32,ScoreListNode*,Hscr*
-th06::ZunFreeArray,0x42b437,0x2f,__stdcall,,void,void*
+th06::ResultScreen::ZunFreeArray,0x42b437,0x2f,default,,void,void*
 th06::ResultScreen::ParseCatk,0x42b466,0x9c,default,,ZunResult,ScoreDat*,Catk*
 th06::ResultScreen::ParseClrd,0x42b502,0x15c,default,,ZunResult,ScoreDat*,Clrd*
 th06::ResultScreen::ParsePscr,0x42b65e,0x17e,default,,ZunResult,ScoreDat*,Pscr*
 th06::ResultScreen::ReleaseScoreDat,0x42b7dc,0x2d,default,,void,ScoreDat*
-th06::WriteScore,0x42b809,0x424,__stdcall,,void,ResultScreen*
+th06::ResultScreen::WriteScore,0x42b809,0x424,__stdcall,,void,ResultScreen*
 th06::ResultScreen::LinkScoreEx,0x42bc2d,0x2e,__thiscall,,i32,ResultScreen*,Hscr*,i32,i32
 th06::ResultScreen::FreeScore,0x42bc5b,0x2a,__thiscall,,void,ResultScreen*,i32,i32
 th06::ResultScreen::HandleResultKeyboard,0x42bc85,0x64f,__thiscall,,i32,ResultScreen*
