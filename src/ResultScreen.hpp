@@ -82,9 +82,9 @@ struct Catk
     u8 characterShotType;
     u32 unk_14;
     char name[32];
-    u32 numAttempts;
+    u32 unk_38;
+    u16 numAttempts;
     u16 numSuccess;
-    u16 unk_3e;
 };
 C_ASSERT(sizeof(Catk) == 0x40);
 
